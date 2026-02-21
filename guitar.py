@@ -1,31 +1,51 @@
 import serial
 import pydirectinput
 
-PORT = 'COM4'  # Tarkista portti!
+# Configuration
+PORT = 'COM4'  # Update this to match your Arduino COM port
 BAUD = 115200
 
+# Key Mapping: Map the serial tags to your preferred keyboard keys
+KEY_MAP = {
+    'G': 'a',  # Green Fret
+    'R': 's',  # Red Fret
+    'Y': 'j',  # Yellow Fret
+    'B': 'k',  # Blue Fret
+    'O': 'l',  # Orange Fret
+    'U': 'up',  # Strum Up
+    'D': 'down',  # Strum Down
+    'S': 'space',  # Star Power / Select
+    'X': 'enter'  # Start / Menu
+}
+
 try:
-    ser = serial.Serial(PORT, BAUD, timeout=0.001)  # Erittäin nopea luku
-    print("Skripti aktiivinen. Pitkät nuotit toimivat nyt!")
+    # Initialize Serial connection with a very low timeout for minimal lag
+    ser = serial.Serial(PORT, BAUD, timeout=0.001)
+    print(f"Bridge Active. Connected to {PORT}")
+    print("Listening for 9 buttons...")
 
     while True:
         if ser.in_waiting > 0:
+            # Read and decode the serial line
             line = ser.readline().decode('utf-8').strip()
 
-            # VIHREÄ NAPPI (A-näppäin)
-            if line == "G1":
-                pydirectinput.keyDown('a')
-            elif line == "G0":
-                pydirectinput.keyUp('a')
+            if len(line) >= 2:
+                tag = line[0]  # The identifier (e.g., 'G')
+                state = line[1]  # The state (e.g., '1' or '0')
 
-            # PUNAINEN NAPPI (S-näppäin)
-            elif line == "R1":
-                pydirectinput.keyDown('s')
-            elif line == "R0":
-                pydirectinput.keyUp('s')
+                if tag in KEY_MAP:
+                    key = KEY_MAP[tag]
 
+                    if state == '1':
+                        pydirectinput.keyDown(key)
+                    elif state == '0':
+                        pydirectinput.keyUp(key)
+
+except KeyboardInterrupt:
+    print("\nScript stopped by user.")
 except Exception as e:
-    print(f"Virhe: {e}")
+    print(f"Error: {e}")
 finally:
-    if 'ser' in locals():
+    if 'ser' in locals() and ser.is_open:
         ser.close()
+        print("Serial connection closed.")
