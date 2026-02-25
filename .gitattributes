@@ -2,3 +2,4 @@
 *.drl linguist-vendored
 *.gbrjob linguist-vendored
 *.zip linguist-vendored
+*.gbr linguist-generated=true
