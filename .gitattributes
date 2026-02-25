@@ -1,0 +1,4 @@
+*.gbr linguist-vendored
+*.drl linguist-vendored
+*.gbrjob linguist-vendored
+*.zip linguist-vendored
