@@ -1,19 +1,17 @@
-// Define the number of buttons and their pins
 const int NUM_BUTTONS = 9;
 const int buttonPins[NUM_BUTTONS] = {2, 3, 4, 5, 6, 7, 8, 9, 10};
-
-// Labels for the Python script (G=Green, R=Red, Y=Yellow, B=Blue, O=Orange, U=StrumUp, D=StrumDown, S=StarPower, X=Start)
 const char* labels[NUM_BUTTONS] = {"G", "R", "Y", "B", "O", "U", "D", "S", "X"};
 
-// Store the previous state of each button
 int lastStates[NUM_BUTTONS];
+unsigned long lastDebounceTime[NUM_BUTTONS]; // Tallentaa jokaisen napin oman ajan
+const unsigned long DEBOUNCE_DELAY = 10;     // 10ms on nyt turvallinen
 
 void setup() {
   Serial.begin(115200);
-  
   for (int i = 0; i < NUM_BUTTONS; i++) {
-    pinMode(buttonPins[i], INPUT);
+    pinMode(buttonPins[i], INPUT); // Kytkentäkaavion mukaiset ulkoiset vastukset
     lastStates[i] = LOW;
+    lastDebounceTime[i] = 0;
   }
 }
 
@@ -21,17 +19,13 @@ void loop() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
     int currentState = digitalRead(buttonPins[i]);
 
-    // Check if the button state has changed
-    if (currentState != lastStates[i]) {
-      // Send message, e.g., "G1" (Pressed) or "G0" (Released)
+    // Tarkistetaan onko tila muuttunut JA onko edellisestä muutoksesta kulunut tarpeeksi aikaa
+    if (currentState != lastStates[i] && (millis() - lastDebounceTime[i] > DEBOUNCE_DELAY)) {
       Serial.print(labels[i]);
-      if (currentState == HIGH) {
-        Serial.println("1");
-      } else {
-        Serial.println("0");
-      }
+      Serial.println(currentState);
       
       lastStates[i] = currentState;
+      lastDebounceTime[i] = millis(); // Päivitetään viimeisin muutosajankohta
     }
   }
 }

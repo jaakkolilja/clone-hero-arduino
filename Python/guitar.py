@@ -1,6 +1,7 @@
 import serial
 import pydirectinput
-
+pydirectinput.PAUSE = 0
+pydirectinput.FAILSAFE = False
 # Configuration
 PORT = 'COM4'  # Update this to match your Arduino COM port
 BAUD = 115200
@@ -25,17 +26,14 @@ try:
     print("Listening for 9 buttons...")
 
     while True:
-        if ser.in_waiting > 0:
-            # Read and decode the serial line
-            line = ser.readline().decode('utf-8').strip()
-
+        # Käytetään while-silmukkaa if-lauseen sijasta, jotta luetaan KAIKKI viestit puskurista
+        while ser.in_waiting > 0:
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
             if len(line) >= 2:
-                tag = line[0]  # The identifier (e.g., 'G')
-                state = line[1]  # The state (e.g., '1' or '0')
-
+                tag = line[0]
+                state = line[1]
                 if tag in KEY_MAP:
                     key = KEY_MAP[tag]
-
                     if state == '1':
                         pydirectinput.keyDown(key)
                     elif state == '0':
